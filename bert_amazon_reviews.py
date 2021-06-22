@@ -1,6 +1,5 @@
-# ! pip install pandas;
-# ! pip install torch;
-# ! pip install transformers;
+# based on data found here
+# !wget http://deepyeti.ucsd.edu/jianmo/amazon/categoryFiles/Appliances.json.gz
 
 import pandas as pd
 import torch
@@ -11,16 +10,10 @@ import torch.optim as optim
 import os
 from torch.utils.data import Dataset
 
-# device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-device = torch.device("cpu")
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+# device = torch.device("cpu")
 
 torch.cuda.is_available()
-
-# def read_and_shuffle(file):
-#     df = pd.read_csv(file, delimiter=',')
-#     # Random shuffle.
-#     df.sample(frac=1)
-#     return df
 
 def get_train_and_val_split(df, splitRatio=0.8):
     train=df.sample(frac=splitRatio,random_state=200)
@@ -195,7 +188,6 @@ class AmazonReviewsDataset(Dataset):
         
         return tokens_ids_tensor, attn_mask, label
 
-!wget http://deepyeti.ucsd.edu/jianmo/amazon/categoryFiles/Appliances.json.gz
 
 # CODE STARTS HERE
 

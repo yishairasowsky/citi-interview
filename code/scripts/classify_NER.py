@@ -87,6 +87,7 @@ if __name__ == '__main__':
                         epochs=EPOCHS, 
                         batch_size=BATCH_SIZE)
 
+    # *************** RESULTS ***************
     plt.figure(figsize=(14,8))
     plt.title('Losses')
     plt.plot(history.history['loss'], label='Train Loss')
@@ -94,4 +95,9 @@ if __name__ == '__main__':
     plt.ylabel('Loss')
     plt.xlabel('Epochs')
     plt.legend()
-    plt.show()
+    plt.show("training_results.png")
+
+
+    # *************** Validation ***************
+    [loss, accuracy] = model.evaluate(X_valid, y_valid)
+    print("Loss:%1.3f, Accuracy:%1.3f" % (loss, accuracy))

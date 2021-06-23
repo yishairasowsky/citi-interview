@@ -1,19 +1,53 @@
-# based on data found here
-# !wget http://deepyeti.ucsd.edu/jianmo/amazon/categoryFiles/Appliances.json.gz
+"""
+**********************
+bert_amazon_reviews.py
+**********************
 
-import pandas as pd
+CREDITS:
+This code is based upon 
+https://github.com/naveenjafer/BERT_Amazon_Reviews/blob/master/main.py
+
+GOAL:
+The purpose of this Python module is to demonstrate 
+that BERT can be fine-tuned using the dataset of Amazon Reviews.
+
+SPECIFICATIONS:
+In this script, it will be made clear 
+(1) how this dataset differs from that of Kaggle NER, and 
+(2) how the resulting tensor differs from that of Kaggle NER.
+"""
+import os
 import torch
 import torch.nn as nn
+import torch.optim as optim
+import amazon_reviews
+
 from transformers import  BertModel, BertTokenizer
 from torch.utils.data import DataLoader
-import torch.optim as optim
-import os
 from torch.utils.data import Dataset
 
+
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-# device = torch.device("cpu")
 
 torch.cuda.is_available()
+
+config = {
+    "splitRatio" : 0.8,
+    "maxLength" : 100,
+    "printEvery" : 100,
+    "outputFolder" : "Models",
+    "outputFileName" : "AmazonReviewClassifier.dat",
+    "threads" : 4,
+    "batchSize" : 64,
+    "validationFraction" : 0.0005,
+    "epochs" : 5,
+    "forceCPU" : False
+    }
+
+if config["forceCPU"]:
+    device = torch.device("cpu")
+
+config["device"] = device
 
 def get_train_and_val_split(df, splitRatio=0.8):
     train=df.sample(frac=splitRatio,random_state=200)
@@ -91,23 +125,6 @@ def evaluate(net, loss_func, dataloader, config):
             if count > config["validationFraction"] * len(val_set):
                 break
     return mean_acc / count, mean_loss / count
-
-config = {
-    "splitRatio" : 0.8,
-    "maxLength" : 100,
-    "printEvery" : 100,
-    "outputFolder" : "Models",
-    "outputFileName" : "AmazonReviewClassifier.dat",
-    "threads" : 4,
-    "batchSize" : 64,
-    "validationFraction" : 0.0005,
-    "epochs" : 5,
-    "forceCPU" : False
-    }
-if config["forceCPU"]:
-    device = torch.device("cpu")
-
-config["device"] = device
 
 class SentimentClassifier(nn.Module):
     def __init__(self, num_classes, device, freeze_bert = True):
@@ -189,65 +206,67 @@ class AmazonReviewsDataset(Dataset):
         return tokens_ids_tensor, attn_mask, label
 
 
-# CODE STARTS HERE
+if __name__ == "__main__":
+    print("Configuration is: ", config)
 
-import pandas as pd
-print("Configuration is: ", config)
-# Read and shuffle input data.
-file_name = 'Appliances.json.gz'
-df = pd.read_json(file_name,compression='infer',lines=True).sample(frac=1)
-df.head(2)
+    # Read and shuffle input data.
+    
+    df = amazon_reviews.load_data()
+    print(df.head())
 
-# df = read_and_shuffle(os.path.join(projectFolder,file_name))
-target_col = 'overall'
-feature_col = 'reviewText'
+    # file_name = 'Appliances.json.gz'
+    # df = pd.read_json(file_name,compression='infer',lines=True).sample(frac=1)
+    # df.head(2)
 
-df = df[[target_col,feature_col]]
-df.columns = ['Score','Text']
-df.head(2)
+    # df = read_and_shuffle(os.path.join(projectFolder,file_name))
+    target_col = 'overall'
+    feature_col = 'reviewText'
 
-num_classes = df['Score'].nunique()
-print("Number of Target Output Classes:", num_classes)
-totalDatasetSize = len(df)
+    df = df[[target_col,feature_col]]
+    df.columns = ['Score','Text']
+    df.head(2)
 
-print('Loading BERT tokenizer...')
-# config = BertConfig.from_pretrained( 'bert-base-uncased', output_hidden_states=True)    
-# self.bert_model = BertModel.from_pretrained('bert-base-uncased', config=config)
+    num_classes = df['Score'].nunique()
+    print("Number of Target Output Classes:", num_classes)
+    totalDatasetSize = len(df)
 
-tokenizer = BertTokenizer.from_pretrained('bert-base-uncased', do_lower_case=True,output_hidden_states=True)
+    print('Loading BERT tokenizer...')
+    # config = BertConfig.from_pretrained( 'bert-base-uncased', output_hidden_states=True)    
+    # self.bert_model = BertModel.from_pretrained('bert-base-uncased', config=config)
 
-# Group by the column Score. This helps you get distribution of the Review Scores.
-symbols = df.groupby('Score')
+    tokenizer = BertTokenizer.from_pretrained('bert-base-uncased', do_lower_case=True,output_hidden_states=True)
 
-scores_dist = []
-for i in range(num_classes):
-    scores_dist.append(len(symbols.groups[i+1])/totalDatasetSize)
+    # Group by the column Score. This helps you get distribution of the Review Scores.
+    symbols = df.groupby('Score')
 
-train, val = get_train_and_val_split(df, config["splitRatio"])
+    scores_dist = []
+    for i in range(num_classes):
+        scores_dist.append(len(symbols.groups[i+1])/totalDatasetSize)
 
-val.to_csv("Validations.csv")
-train.to_csv("Train.csv")
+    train, val = get_train_and_val_split(df, config["splitRatio"])
 
-# You can set the length to the true max length from the dataset, I have reduced it for the sake of memory and quicker training.
-#T = get_max_length(reviews)
-T = config["maxLength"]
+    val.to_csv("Validations.csv")
+    train.to_csv("Train.csv")
 
-train_set = AmazonReviewsDataset(train, T)
-val_set = AmazonReviewsDataset(val, T)
+    # You can set the length to the true max length from the dataset, I have reduced it for the sake of memory and quicker training.
+    #T = get_max_length(reviews)
+    T = config["maxLength"]
 
-train_loader = DataLoader(train_set, batch_size = config["batchSize"], num_workers = config["threads"])
-val_loader = DataLoader(val_set, batch_size = config["batchSize"], num_workers = config["threads"])
+    train_set = AmazonReviewsDataset(train, T)
+    val_set = AmazonReviewsDataset(val, T)
 
-# We are unfreezing the BERT layers so as to be able to fine tune and save a new BERT model that is specific to the Sizeable food reviews dataset.
-net = SentimentClassifier(num_classes, config["device"], freeze_bert=False)
-net.to(config["device"])
-weights = torch.tensor(scores_dist).to(config["device"])
+    train_loader = DataLoader(train_set, batch_size = config["batchSize"], num_workers = config["threads"])
+    val_loader = DataLoader(val_set, batch_size = config["batchSize"], num_workers = config["threads"])
 
-# Setting the Loss function and Optimizer.
-loss_func = nn.NLLLoss(weight=weights)
-opti = optim.Adam(net.parameters(), lr = 2e-5)
-m = nn.LogSoftmax(dim=1)
+    # We are unfreezing the BERT layers so as to be able to fine tune and save a new BERT model that is specific to the Sizeable food reviews dataset.
+    net = SentimentClassifier(num_classes, config["device"], freeze_bert=False)
+    net.to(config["device"])
+    weights = torch.tensor(scores_dist).to(config["device"])
 
-torch.cuda.set_device(0)
-trainFunc(net, loss_func, opti, train_loader, val_loader, config)
+    # Setting the Loss function and Optimizer.
+    loss_func = nn.NLLLoss(weight=weights)
+    opti = optim.Adam(net.parameters(), lr = 2e-5)
+    m = nn.LogSoftmax(dim=1)
 
+    torch.cuda.set_device(0)
+    trainFunc(net, loss_func, opti, train_loader, val_loader, config)

@@ -5,8 +5,9 @@ fine_tune_bert.py
 The purpose of this Python module is to demonstrate 
 that BERT can be fine-tuned using the two datasets, 
 the first from Amazon Reviews and the second from Kaggle NER. 
-It will be made clear how these two datasets are different, 
-and what the differences in the resulting tensors are.
+In this script, it will be made clear 
+(1) how these two datasets are different, and 
+(2) what the differences in the resulting tensors are.
 """
 import kaggle_ner
 import amazon_reviews

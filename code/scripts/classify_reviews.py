@@ -1,6 +1,6 @@
 """
 **********************
-bert_amazon_reviews.py
+classify_reviews.py
 **********************
 
 CREDITS:

@@ -20,6 +20,21 @@ def load_data(type='train',random_state=42):
     raw_df = pd.read_csv(file_name,sep=' ',header=None)
     return raw_df
 
+
+def load_sentences(filepath):
+    final = []
+    sentences = []
+    with open(filepath, 'r') as f:
+        for line in f.readlines():
+            if (line == ('-DOCSTART- -X- -X- O\n') or line == '\n'):
+                if len(sentences) > 0:
+                    final.append(sentences)
+                    sentences = []
+            else:
+                l = line.split(' ')
+                sentences.append((l[0], l[3].strip('\n')))
+    return final
+
 if __name__ == '__main__':
     df = load_data()
     print(df.head())

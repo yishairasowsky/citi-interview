@@ -1,3 +1,4 @@
-pandas
+# pip install -r requirements.txt
+# pandas
 # torch
-# transformers
+transformers

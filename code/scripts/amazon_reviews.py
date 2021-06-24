@@ -13,10 +13,10 @@ import pandas as pd
 
 from sklearn.model_selection import train_test_split
 
-
 class DataManager:
 
-    # def __init__(self):
+    def __init__(self):
+        pass
     #     self.MODEL_NAME = 'bert-base-cased' 
     #     self.tokenizer = AutoTokenizer.from_pretrained(self.MODEL_NAME)
 
@@ -114,33 +114,33 @@ class DataManager:
 
     # def load_data(selfproduct_category='Appliances', row_limit=None, random_state=42):
     
-    def limit_rows(self):
-        if self.row_limit:
-            df = df.iloc[:row_limit,:]
+    def limit_rows(self,row_limit):
+        if row_limit:
+            self.df = self.df.iloc[:row_limit,:]
 
     def shuffle_rows(self):
         # shuffle rows
-        df = df.sample(frac=1,random_state=random_state) 
+        self.df = self.df.sample(frac=1,random_state=42) 
     
 
     def drop_rows(self):
         # remove unwanted rows
-        df = df.dropna(subset=['label', 'text'])
+        self.df = self.df.dropna(subset=['label', 'text'])
     
 
     def select_columns(self):
         # select wanted columns
         cols = ['text','label']
-        df = df[cols]
+        self.df = self.df[cols]
     
 
     def set_target(self):
         # organize target variable
-        possible_labels = df.overall.unique()
+        possible_labels = self.df.overall.unique()
         label_dict = {possible_label:possible_label - 1 for possible_label in possible_labels}
-        df['label'] = df.overall.replace(label_dict)
+        self.df['label'] = self.df.overall.replace(label_dict)
     
-    def read_raw(self):
+    def read_raw(self,product_category):
         # all raw data
         file_name = os.path.join(r'data/amazon_reviews',f'{product_category}.json.gz')
         self.df = pd.read_json(file_name,compression='infer',lines=True) 
@@ -150,7 +150,7 @@ class DataManager:
         self.df["text"] = self.df["summary"] + ' ' + self.df["reviewText"]
         self.df["text"] = self.df["text"].str.lower()
         
-    def load_data(self):
+    def load_data(self,row_limit=None,product_category='Appliances'):
         """
         Get shuffled datasets ready for BERT classification. 
 
@@ -163,7 +163,7 @@ class DataManager:
             df (pd.DataFrame): A table containing training and validation samples.
         """
         # choose data
-        self.read_raw()
+        self.read_raw(product_category)
         self.select_input()
         self.set_target()
 
@@ -173,34 +173,29 @@ class DataManager:
         
         # prepare for classification
         self.shuffle_rows()
-        self.limit_rows()
+        self.limit_rows(row_limit)
 
         # split samples into training versus validation
-        X_train, X_val, _, _ = train_test_split(df.index.values, 
-                                                        df.label.values, 
+        X_train, X_val, _, _ = train_test_split(self.df.index.values, 
+                                                        self.df.label.values, 
                                                         test_size=0.15, 
                                                         random_state=42, 
-                                                        stratify=df.label.values)
+                                                        stratify=self.df.label.values)
         # label data type in column
-        df['data_type'] = ['not_set']*df.shape[0] 
-        df.loc[X_train, 'data_type'] = 'train'
-        df.loc[X_val, 'data_type'] = 'val'
+        self.df['data_type'] = ['not_set']*self.df.shape[0] 
+        self.df.loc[X_train, 'data_type'] = 'train'
+        self.df.loc[X_val, 'data_type'] = 'val'
 
-        return df
+        return self.df
 
 if __name__ == '__main__':
     
     import torch
-    import amazon_reviews
     from transformers import BertTokenizer
     from torch.utils.data import TensorDataset
-    from transformers import BertForSequenceClassification
-    
-    df = load_data()
-    print(df.head())
 
-
-    df = amazon_reviews.load_data(row_limit=500)
+    dm = DataManager()
+    df = dm.load_data(row_limit=500)
 
     tokenizer = BertTokenizer.from_pretrained('bert-base-uncased', 
                                           do_lower_case=True)

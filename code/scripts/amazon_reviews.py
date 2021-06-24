@@ -167,7 +167,7 @@ def f1_score_func(preds, labels):
     labels_flat = labels.flatten()
     return f1_score(labels_flat, preds_flat, average='weighted')
 
-def accuracy_per_class(preds, labels):
+def accuracy_per_class(preds, labels, label_dict):
     label_dict_inverse = {v: k for k, v in label_dict.items()}
     
     preds_flat = np.argmax(preds, axis=1).flatten()
@@ -180,20 +180,13 @@ def accuracy_per_class(preds, labels):
         print(f'Accuracy: {len(y_preds[y_preds==label])}/{len(y_true)}\n')
 
 def evaluate(dataloader_val):
-
     model.eval()
-    
     loss_val_total = 0
     predictions, true_vals = [], []
     
     for batch in dataloader_val:
-        
         batch = tuple(b.to(device) for b in batch)
-        
-        inputs = {'input_ids':      batch[0],
-                  'attention_mask': batch[1],
-                  'labels':         batch[2],
-                 }
+        inputs = {'input_ids':batch[0],'attention_mask':batch[1],'labels':batch[2]}
 
         with torch.no_grad():        
             outputs = model(**inputs)
@@ -239,7 +232,7 @@ if __name__ == '__main__':
                     lr=1e-5, 
                     eps=1e-8)
 
-    epochs = 5
+    epochs = 1 # change to 5
 
     scheduler = get_linear_schedule_with_warmup(optimizer, 
                                                 num_warmup_steps=0,
@@ -287,7 +280,6 @@ for epoch in tqdm(range(1, epochs+1)):
         progress_bar.set_postfix({'training_loss': '{:.3f}'.format(loss.item()/len(batch))})
          
         
-    # torch.save(model.state_dict(), f'data_volume/finetuned_BERT_epoch_{epoch}.model')
     torch.save(model.state_dict(), f'finetuned_BERT_epoch_{epoch}.model')
         
     tqdm.write(f'\nEpoch {epoch}')
@@ -300,5 +292,5 @@ for epoch in tqdm(range(1, epochs+1)):
     tqdm.write(f'Validation loss: {val_loss}')
     tqdm.write(f'F1 Score (Weighted): {val_f1}')
     _, predictions, true_vals = evaluate(dataloader_validation)
-    results = accuracy_per_class(predictions, true_vals)
+    results = accuracy_per_class(predictions, true_vals,dm.label_dict)
     print(results)

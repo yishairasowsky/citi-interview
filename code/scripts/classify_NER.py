@@ -26,7 +26,7 @@ from transformers import AutoConfig, TFAutoModelForTokenClassification
 
 if __name__ == '__main__':
 
-    samples,schema = kaggle_ner.load_data()
+    train_samples,test_samples,valid_samples,samples,schema = kaggle_ner.load_data()
 
     # *************** TOKENIZE ***************
     MODEL_NAME = 'bert-base-cased' 

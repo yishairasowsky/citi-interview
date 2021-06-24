@@ -49,11 +49,9 @@ def load_data():
     schema = ['_'] + sorted({tag for sentence in samples 
                                 for _, tag in sentence})
 
-    return samples,schema
-"""                                
-"""
+    return train_samples,test_samples,valid_samples,samples,schema
 
 if __name__ == '__main__':
-    samples,schema = load_data()
+    train_samples,test_samples,valid_samples,samples,schema = load_data()
     print('done')
     # print(df.head())

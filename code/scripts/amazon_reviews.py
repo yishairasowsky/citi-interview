@@ -90,6 +90,28 @@ class DataManager:
         )
 
     def generate_tensors(self):
+        """
+        Returns two dataset tensors, each of which is comprised of three tensors.
+        
+        In each tensor, the first index indicates the relevant 
+        sentence, while the second indicates the location of the 
+        relevant token in that sentence.
+        
+        In the first tensor, each value represents the relevant 
+        token's numeric ID.
+        
+        In the second tensor, each value represents whether that 
+        token has nay meaningful content (1) or not (0). The 
+        purpose is so that only nontrivial tokens should contribute 
+        to our training.
+        
+        In the third tensor, each value represents the which of the 
+        multiple classes is the correct overall score of the review.
+
+        All tensors are padded to the right, to ensure uniform 
+        length of all sentences.
+        """
+        
         input_ids_train = self.encoded_data_train['input_ids']
         attention_masks_train = self.encoded_data_train['attention_mask']
         labels_train = torch.tensor(self.df[self.df.data_type=='train'].label.values)
@@ -98,6 +120,7 @@ class DataManager:
         attention_masks_val = self.encoded_data_val['attention_mask']
         labels_val = torch.tensor(self.df[self.df.data_type=='val'].label.values)
 
+        
         dataset_train = TensorDataset(input_ids_train, attention_masks_train, labels_train)
         dataset_val = TensorDataset(input_ids_val, attention_masks_val, labels_val)
 

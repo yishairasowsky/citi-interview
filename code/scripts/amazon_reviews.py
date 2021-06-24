@@ -14,7 +14,8 @@ import numpy as np
 import random
 import pandas as pd
 
-from transformers import BertTokenizer, AdamW, get_linear_schedule_with_warmup
+from tqdm import tqdm
+from transformers import BertTokenizer, AdamW, get_linear_schedule_with_warmup, BertForSequenceClassification
 from sklearn.metrics import f1_score
 from torch.utils.data import TensorDataset, DataLoader, RandomSampler, SequentialSampler
 from sklearn.model_selection import train_test_split
@@ -211,7 +212,7 @@ def evaluate(dataloader_val):
 if __name__ == '__main__':
     
     dm = DataManager()
-    dm.load_data(row_limit=500)
+    dm.load_data(row_limit=300)
 
     model = BertForSequenceClassification.from_pretrained("bert-base-uncased",
                                                         num_labels=len(dm.label_dict),

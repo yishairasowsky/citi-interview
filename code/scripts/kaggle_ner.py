@@ -45,7 +45,7 @@ class DataManager:
 
     def process_sentences(self,filepath):
         """
-        As in the Amazon reviews dataset, the Kaggle NER dataset
+        As in the Amazon reviews dataset, this Kaggle NER dataset
         involves multi-class classification of sentences. The major 
         difference, however, is how the content is labeled. For the 
         Amazon reviews, an entire was assigned a single label (the 

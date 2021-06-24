@@ -48,18 +48,17 @@ class DataManager:
         self.label_dict = {possible_label:possible_label - 1 for possible_label in possible_labels}
         self.df['label'] = self.df.overall.replace(self.label_dict)
     
-    def read_raw(self,product_category):
+    def raw_data(self,product_category):
         # all raw data
         file_name = os.path.join(r'data/amazon_reviews',f'{product_category}.json.gz')
         self.df = pd.read_json(file_name,compression='infer',lines=True) 
     
     def select_input(self):
-        # select relevant input features
+        # choose relevant features
         self.df["text"] = self.df["summary"] + ' ' + self.df["reviewText"]
         self.df["text"] = self.df["text"].str.lower()
 
     def train_val_split(self):
-        # split samples into training versus validation
         X_train, X_val, _, _ = train_test_split(self.df.index.values, 
                                                         self.df.label.values, 
                                                         test_size=0.15, 
@@ -71,7 +70,6 @@ class DataManager:
         self.df.loc[X_val, 'data_type'] = 'val'
 
     def tokenize(self):
-
         tokenizer = BertTokenizer.from_pretrained('bert-base-uncased', 
                                             do_lower_case=True)
 
@@ -139,10 +137,17 @@ class DataManager:
         Returns:
             df (pd.DataFrame): A table containing training and validation samples.
         """
-        # choose data
-        self.read_raw(product_category)
+        self.raw_data(product_category)
         self.select_input()
         self.set_target()
+
+        # As in the Kaggle NER dataset, this Amazon reviews dataset
+        # involves multi-class classification of sentences. The major 
+        # difference, however, is how the content is labeled. For the 
+        # Kaggle NER sentences, each word (or more accurately, 
+        # each token) in the sentences is assigned a tag (the entity 
+        # type, e.g. person or location). Whereas here an entire was
+        # assigned a single label (the overall score).
 
         # remove unwanted content
         self.select_columns()

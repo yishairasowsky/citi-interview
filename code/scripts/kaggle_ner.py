@@ -44,9 +44,9 @@ class DataManager:
                     if len(sentences) > 0:
                         final.append(sentences)
                         sentences = []
-                    else:
-                        l = line.split(' ')
-                        sentences.append((l[0], l[3].strip('\n')))
+                else:
+                    l = line.split(' ')
+                    sentences.append((l[0], l[3].strip('\n')))
         return final
 
     def construct_arrays(self):

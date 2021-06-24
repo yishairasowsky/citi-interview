@@ -7,8 +7,10 @@ https://www.kaggle.com/alaakhaled/conll003-englishversion,
 and eventually output a shuffled dataset required for BERT classification. 
 """
 import os
+import numpy as np
 import pandas as pd
 
+from tqdm import tqdm
 from transformers import AutoTokenizer
 
 class DataManager:
@@ -24,8 +26,8 @@ class DataManager:
         return [(3, 'O')] + seq + [(4, 'O')]
         
     def generate_arrays(self,samples):
-        tag_index = {tag: i for i, tag in enumerate(schema)}
-        tokenized_samples = list(tqdm(map(tokenize_sample, samples)))
+        tag_index = {tag: i for i, tag in enumerate(self.schema)}
+        tokenized_samples = list(tqdm(map(self.tokenize_sample, samples)))
         max_len = max(map(len, tokenized_samples))
         X = np.zeros((len(samples), max_len), dtype=np.int32)
         y = np.zeros((len(samples), max_len), dtype=np.int32)

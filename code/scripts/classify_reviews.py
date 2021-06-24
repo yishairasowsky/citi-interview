@@ -14,6 +14,7 @@ In this script, it will be made clear
 (1) how this dataset differs from that of Kaggle NER, and 
 (2) how the resulting tensor differs from that of Kaggle NER.
 """
+import torch
 import amazon_reviews
 from transformers import BertTokenizer
 from torch.utils.data import TensorDataset

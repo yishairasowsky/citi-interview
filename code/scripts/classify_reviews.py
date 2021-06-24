@@ -14,25 +14,12 @@ In this script, it will be made clear
 (1) how this dataset differs from that of Kaggle NER, and 
 (2) how the resulting tensor differs from that of Kaggle NER.
 """
-
 import amazon_reviews
-
 from sklearn.model_selection import train_test_split
 
 if __name__ == '__main__':
 
     df = amazon_reviews.load_data(row_limit=500)
-
-    X_train, X_val, y_train, y_val = train_test_split(df.index.values, 
-                                                    df.label.values, 
-                                                    test_size=0.15, 
-                                                    random_state=42, 
-                                                    stratify=df.label.values)
-
-    df['data_type'] = ['not_set']*df.shape[0]
-
-    df.loc[X_train, 'data_type'] = 'train'
-    df.loc[X_val, 'data_type'] = 'val'
 
     tokenizer = BertTokenizer.from_pretrained('bert-base-uncased', 
                                           do_lower_case=True)

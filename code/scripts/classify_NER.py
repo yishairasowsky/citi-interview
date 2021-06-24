@@ -29,6 +29,7 @@ if __name__ == '__main__':
     samples,schema = kaggle_ner.load_data()
 
     # *************** TOKENIZE ***************
+    MODEL_NAME = 'bert-base-cased' 
     tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME)
     def tokenize_sample(sample):
         seq = [

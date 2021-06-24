@@ -43,8 +43,17 @@ class DataManager:
         return X, y
 
     def process_sentences(self,filepath):
-        final = []
-        sentences = []
+        """
+        As in the Amazon reviews dataset, the Kaggle NER dataset
+        involves multi-class classification of sentences. The major 
+        difference, however, is how the content is labeled. For the 
+        Amazon reviews, an entire was assigned a single label (the 
+        overall score). Whereas here each word (or more accurately, 
+        each token) in the sentences is assigned a tag (the entity 
+        type, e.g. person or location).
+        """
+        final = [] # 
+        sentences = [] # list of sentences belonging to the current document
         with open(filepath, 'r') as f:
             for line in f.readlines()[:100]: # MUST CHANGE THIS LIST TRUNCATION
             # for line in f.readlines():
@@ -55,13 +64,14 @@ class DataManager:
                 else:
                     l = line.split(' ')
                     sentences.append((l[0], l[3].strip('\n')))
- 
+        random.seed(10)
         random.shuffle(final)
-
         return final
 
     def construct_arrays(self):
         """
+        The shape of the arrays (or tensors) here will differ from 
+        those resulting from the Amazon review dataset.
         Each X array is comprised of the tokens for each word/punctuation in the sentence, plus padding.
         Each y array is comprised of the numeric keys for the NER tag of each word, plus padding.
         """

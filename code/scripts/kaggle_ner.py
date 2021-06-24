@@ -1,15 +1,13 @@
 """
-Load data of a category (e.g. appliances) downloaded from 
+Provide function to load and shuffle the data downloaded from 
 https://www.kaggle.com/alaakhaled/conll003-englishversion,
-and produce a shuffled dataset required for BERT classification. 
-Finally, demonstrate that BERT can be fine-tuned using the dataset of Amazon Reviews.
-The code is based largely upon 
-https://github.com/naveenjafer/BERT_Amazon_Reviews/blob/master/main.py
+and prepare it for BERT classification. 
+
+The code is based upon 
+https://www.kaggle.com/alincijov/conll-huggingface-named-entity-recognition
 """
 import os
 import numpy as np
-import pandas as pd
-import kaggle_ner
 import random
 import tensorflow as tf
 import matplotlib.pyplot as plt
@@ -117,6 +115,8 @@ class DataManager:
         self.construct_arrays()
 
 if __name__ == '__main__':
+
+    # Demonstration that BERT can be fine-tuned using this Kaggle NER dataset.
 
     # Load data
     dm = DataManager()

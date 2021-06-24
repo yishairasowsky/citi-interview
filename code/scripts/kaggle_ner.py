@@ -52,21 +52,23 @@ class DataManager:
         each token) in the sentences is assigned a tag (the entity 
         type, e.g. person or location).
         """
-        final = [] # 
-        sentences = [] # list of sentences belonging to the current document
+        tagged_sentences = [] # 
+        doc_sentences = [] # list of sentences belonging to the current document
         with open(filepath, 'r') as f:
-            for line in f.readlines()[:100]: # MUST CHANGE THIS LIST TRUNCATION
+            for line in f.readlines()[:2000]: # MUST CHANGE THIS LIST TRUNCATION
             # for line in f.readlines():
+                # upon reaching a new document
                 if (line == ('-DOCSTART- -X- -X- O\n') or line == '\n'):
-                    if len(sentences) > 0:
-                        final.append(sentences)
-                        sentences = []
+                    if len(doc_sentences) > 0:
+                        # store any sentences from the previous document
+                        tagged_sentences.append(doc_sentences)
+                        doc_sentences = []
                 else:
                     l = line.split(' ')
-                    sentences.append((l[0], l[3].strip('\n')))
+                    doc_sentences.append((l[0], l[3].strip('\n')))
         random.seed(10)
-        random.shuffle(final)
-        return final
+        random.shuffle(tagged_sentences)
+        return tagged_sentences
 
     def construct_arrays(self):
         """

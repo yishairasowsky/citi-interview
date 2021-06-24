@@ -31,15 +31,18 @@ class DataManager:
         return [(3, 'O')] + seq + [(4, 'O')]
         
     def generate_arrays(self,samples):
-        tag_index = {tag: i for i, tag in enumerate(self.schema)}
+        # assign numbers to NER tag
+        tag_index = {tag: i for i, tag in enumerate(self.schema)} 
         tokenized_samples = list(tqdm(map(self.tokenize_sample, samples)))
+        # implement padding
         max_len = max(map(len, tokenized_samples))
         X = np.zeros((len(samples), max_len), dtype=np.int32)
         y = np.zeros((len(samples), max_len), dtype=np.int32)
-        for i, sentence in enumerate(tokenized_samples):
-            for j, (subtoken_id, tag) in enumerate(sentence):
-                X[i, j] = subtoken_id
-                y[i,j] = tag_index[tag]
+        # fill in 
+        for sentence_idx, tokenized_sentence in enumerate(tokenized_samples):
+            for position_in_sentence, (subtoken_id, tag) in enumerate(tokenized_sentence):
+                X[sentence_idx, position_in_sentence] = subtoken_id
+                y[sentence_idx,position_in_sentence] = tag_index[tag]
         return X, y
 
     def process_sentences(self,filepath):
@@ -55,27 +58,37 @@ class DataManager:
         tagged_sentences = [] # 
         doc_sentences = [] # list of sentences belonging to the current document
         with open(filepath, 'r') as f:
-            for line in f.readlines()[:2000]: # MUST CHANGE THIS LIST TRUNCATION
-            # for line in f.readlines():
-                # upon reaching a new document
+            for line in f.readlines():
+                # upon reaching a new group of sentences
                 if (line == ('-DOCSTART- -X- -X- O\n') or line == '\n'):
                     if len(doc_sentences) > 0:
-                        # store any sentences from the previous document
+                        # store content from previous group
                         tagged_sentences.append(doc_sentences)
+                        # reinitialize to gather next group of sentences
                         doc_sentences = []
                 else:
-                    l = line.split(' ')
-                    doc_sentences.append((l[0], l[3].strip('\n')))
+                    # store important information, i.e. text and NER tag 
+                    entity_attributes = line.split(' ')
+                    entity_text = entity_attributes[0]
+                    entity_tag = entity_attributes[3]
+                    doc_sentences.append((entity_text, entity_tag.strip('\n')))
         random.seed(10)
         random.shuffle(tagged_sentences)
         return tagged_sentences
 
     def construct_arrays(self):
         """
-        The shape of the arrays (or tensors) here will differ from 
+        Here the shape of the arrays (or tensors) will differ from 
         those resulting from the Amazon review dataset.
-        Each X array is comprised of the tokens for each word/punctuation in the sentence, plus padding.
-        Each y array is comprised of the numeric keys for the NER tag of each word, plus padding.
+        
+        Each X array is comprised of the tokens for each 
+        word/punctuation in the sentence.
+        
+        Each y array is comprised of the numeric keys for the NER 
+        tag of each word.
+        
+        Any array has padding on the right side to make the length 
+        of all sentences uniform.
         """
         self.X_train, self.y_train = self.generate_arrays(self.train_samples)
         self.X_test, self.y_test = self.generate_arrays(self.test_samples)

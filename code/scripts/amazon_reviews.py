@@ -55,7 +55,10 @@ class DataManager:
         Kaggle NER sentences, each word (or more accurately, 
         each token) in the sentences was assigned a tag ('person' 
         or 'location'). Whereas here, an entire is simply assigned 
-        one label for the overall score of the review.
+        one label for the overall score of the review. So the 
+        training will simply involve learning the correct score 
+        given the collection of words in the review.
+        sentence.
         """
         file_name = os.path.join(r'data/amazon_reviews',f'{product_category}.json.gz')
         self.df = pd.read_json(file_name,compression='infer',lines=True) 
@@ -209,16 +212,17 @@ def evaluate(dataloader_val):
     return loss_val_avg, predictions, true_vals
     
 if __name__ == '__main__':
+
+    # Now follows the deomnstration that BERT can be fine tuned 
+    # using this dataset of reviews. One could alternatively do 
+    # this in a separate file, using the standard import syntax,
+    # from amazon_reviews import DataManager
+    # For our purposes, however, putting everything into one file 
+    # is acceptable. 
     
     dm = DataManager()
     dm.load_data()
 
-    # Now follows the deomnstration that BERT can be fine tuned 
-    # using this dataset. One could alternatively do this in a 
-    # separate file, using the standard import syntax,
-    # from amazon_reviews import DataManager
-    # For our purposes, however, putting everything into one file 
-    # is acceptable. 
     model = BertForSequenceClassification.from_pretrained("bert-base-uncased",
                                                         num_labels=len(dm.label_dict),
                                                         output_attentions=False,

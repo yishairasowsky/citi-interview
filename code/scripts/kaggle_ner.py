@@ -1,15 +1,16 @@
 """
-kaggle_ner.py
-
-The purpose of this Python module is 
-to take data downloaded from one of the categories at
+Load data of a category (e.g. appliances) downloaded from 
 https://www.kaggle.com/alaakhaled/conll003-englishversion,
-and eventually output a shuffled dataset required for BERT classification. 
+and produce a shuffled dataset required for BERT classification. 
+Finally, demonstrate that BERT can be fine-tuned using the dataset of Amazon Reviews.
+The code is based largely upon 
+https://github.com/naveenjafer/BERT_Amazon_Reviews/blob/master/main.py
 """
 import os
 import numpy as np
 import pandas as pd
 import kaggle_ner
+import random
 import tensorflow as tf
 import matplotlib.pyplot as plt
 
@@ -54,6 +55,9 @@ class DataManager:
                 else:
                     l = line.split(' ')
                     sentences.append((l[0], l[3].strip('\n')))
+ 
+        random.shuffle(final)
+
         return final
 
     def construct_arrays(self):
@@ -89,20 +93,19 @@ class DataManager:
 
 if __name__ == '__main__':
 
-    # DATA
+    # Load data
     dm = DataManager()
-    dm.load_data()
+    dm.load_data() # store data as attributes (e.g. dm.X_train)
 
-    # MODEL
+    # Init BERT model
     MODEL_NAME = dm.MODEL_NAME
     config = AutoConfig.from_pretrained(MODEL_NAME, num_labels=len(dm.schema))
     model = TFAutoModelForTokenClassification.from_pretrained(
         MODEL_NAME, config=config)
 
-    # TRAINING
+    # Train model
     EPOCHS=5
     BATCH_SIZE=8
-
     optimizer = tf.keras.optimizers.Adam(lr=0.000001)
     loss = tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True)
     model.compile(optimizer=optimizer, loss=loss, metrics='accuracy')
@@ -111,7 +114,7 @@ if __name__ == '__main__':
                         epochs=EPOCHS, 
                         batch_size=BATCH_SIZE)
 
-    # LOSS
+    # Plot loss
     plt.figure(figsize=(14,8))
     plt.title('Losses')
     plt.plot(history.history['loss'], label='Train Loss')
@@ -121,7 +124,7 @@ if __name__ == '__main__':
     plt.legend()
     plt.savefig(os.path.join('images',"loss.png"))
 
-    # ACCURACY
+    # Plot accuracy
     plt.figure(figsize=(14,8))
     plt.title('Accuracies')
     plt.plot(history.history['accuracy'], label='Train Accuracy')
@@ -131,6 +134,6 @@ if __name__ == '__main__':
     plt.legend()
     plt.savefig(os.path.join('images',"accuracy.png"))
 
-    # RESULTS
+    # Print results
     [loss, accuracy] = model.evaluate(dm.X_valid, dm.y_valid)
     print("Loss:%1.3f, Accuracy:%1.3f" % (loss, accuracy))

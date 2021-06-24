@@ -26,27 +26,7 @@ from transformers import AutoConfig, TFAutoModelForTokenClassification
 
 if __name__ == '__main__':
 
-    # *************** DATASET ***************
-    path = r'data\kaggle_ner\train.txt'
-    train_samples = kaggle_ner.load_sentences(path)
-
-    path = r'data\kaggle_ner\test.txt'
-    test_samples = kaggle_ner.load_sentences(path)
-    
-    path = r'data\kaggle_ner\valid.txt'
-    valid_samples = kaggle_ner.load_sentences(path)
-    
-    samples = train_samples + test_samples
-
-    schema = ['_'] + sorted({tag for sentence in samples 
-                                for _, tag in sentence})
-
-    # *************** MODEL ***************
-    MODEL_NAME = 'bert-base-cased' 
-    config = AutoConfig.from_pretrained(MODEL_NAME, num_labels=len(schema))
-    model = TFAutoModelForTokenClassification.from_pretrained(
-        MODEL_NAME, config=config)
-    model.summary()
+    samples,schema = kaggle_ner.load_data()
 
     # *************** TOKENIZE ***************
     tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME)
@@ -73,6 +53,14 @@ if __name__ == '__main__':
     X_train, y_train = preprocess(train_samples)
     X_test, y_test = preprocess(test_samples)
     X_valid, y_valid = preprocess(valid_samples)
+
+    # *************** MODEL ***************
+    MODEL_NAME = 'bert-base-cased' 
+    config = AutoConfig.from_pretrained(MODEL_NAME, num_labels=len(schema))
+    model = TFAutoModelForTokenClassification.from_pretrained(
+        MODEL_NAME, config=config)
+    model.summary()
+
 
     
     # *************** TRAINING ***************
